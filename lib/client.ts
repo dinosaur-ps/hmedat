@@ -16,8 +16,13 @@ export type Product = {
   id: string;
   name: string;
   price: number;
+  originalPrice: number;
   image: string;
   category: string;
+  description: string;
+  badge: string;
+  featured: boolean;
+  dealEnd: number | null;
   active: boolean;
   sort: number;
 };
