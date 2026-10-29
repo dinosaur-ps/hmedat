@@ -12,7 +12,11 @@ export function productInput(value: any) {
   const name = String(value.name || "").trim(),
     category = String(value.category || "عام").trim(),
     image = String(value.image || "").trim(),
-    price = Number(value.price);
+    price = Number(value.price),
+    originalPrice = Number(value.originalPrice || value.price || 0),
+    description = String(value.description || "").trim(),
+    badge = String(value.badge || "מבצע").trim(),
+    dealEnd = value.dealEnd ? new Date(value.dealEnd).getTime() : null;
   if (
     !name ||
     name.length > 120 ||
@@ -30,11 +34,26 @@ export function productInput(value: any) {
   )
     throw Error("أضف صورة أو رابط صورة آمن يبدأ بـ https.");
   if (image.length > 2000) throw Error("رابط الصورة طويل جداً.");
+  if (
+    !Number.isFinite(originalPrice) ||
+    originalPrice < price ||
+    originalPrice > 1000000
+  )
+    throw Error("السعر قبل الخصم يجب أن يساوي سعر العرض أو يكون أعلى منه.");
+  if (description.length > 240 || badge.length > 40)
+    throw Error("الوصف أو شارة العرض أطول من الحد المسموح.");
+  if (dealEnd !== null && (!Number.isFinite(dealEnd) || dealEnd < Date.now()))
+    throw Error("موعد انتهاء العرض يجب أن يكون في المستقبل.");
   return {
     name,
     category,
     image,
     price,
+    originalPrice,
+    description,
+    badge,
+    featured: value.featured === true ? 1 : 0,
+    dealEnd,
     active: value.active === false ? 0 : 1,
     sort: Number.isInteger(value.sort)
       ? Math.max(0, Math.min(9999, value.sort))
