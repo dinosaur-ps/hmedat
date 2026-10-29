@@ -4,8 +4,13 @@ import { api, type Product } from "@/lib/client";
 const blank = {
   name: "",
   price: "",
+  originalPrice: "",
   image: "",
   category: "عام",
+  description: "",
+  badge: "מבצע",
+  featured: false,
+  dealEnd: "",
   active: true,
   sort: 0,
 };
@@ -84,6 +89,7 @@ export default function Admin({ setup = false }: { setup?: boolean }) {
         body: JSON.stringify({
           ...form,
           price: Number(form.price),
+          originalPrice: Number(form.originalPrice || form.price),
           sort: Number(form.sort),
         }),
       });
@@ -250,7 +256,7 @@ export default function Admin({ setup = false }: { setup?: boolean }) {
               </label>
               <div className="two-fields">
                 <label>
-                  السعر بالشيكل
+                  سعر العرض بالشيكل
                   <input
                     type="number"
                     required
@@ -264,6 +270,16 @@ export default function Admin({ setup = false }: { setup?: boolean }) {
                   />
                 </label>
                 <label>
+                  السعر قبل الخصم
+                  <input type="number" required min="0" max="1000000" step="0.01" value={form.originalPrice} onChange={(e) => setForm({ ...form, originalPrice: e.target.value })} />
+                </label>
+              </div>
+              <label>
+                وصف قصير
+                <textarea maxLength={240} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              </label>
+              <div className="two-fields">
+                <label>
                   الفئة
                   <input
                     required
@@ -273,6 +289,10 @@ export default function Admin({ setup = false }: { setup?: boolean }) {
                       setForm({ ...form, category: e.target.value })
                     }
                   />
+                </label>
+                <label>
+                  شارة العرض
+                  <input maxLength={40} value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} />
                 </label>
               </div>
               <label>
@@ -349,6 +369,10 @@ export default function Admin({ setup = false }: { setup?: boolean }) {
                   إظهار بالموقع
                 </label>
               </div>
+              <div className="two-fields">
+                <label className="check"><input type="checkbox" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} /> عرض رئيسي مع عداد</label>
+                {form.featured && <label>ينتهي العرض في<input type="datetime-local" required value={form.dealEnd} onChange={(e) => setForm({ ...form, dealEnd: e.target.value })} /></label>}
+              </div>
               <div className="row">
                 <button className="primary" disabled={busy || uploading}>
                   {busy
@@ -380,9 +404,9 @@ export default function Admin({ setup = false }: { setup?: boolean }) {
                   onChange={(e) => setFilter(e.target.value)}
                 />
               </div>
-              {!products.length && (
+              {(!products.length || products.every((p) => p.name.includes("· דוגמה"))) && (
                 <div className="empty">
-                  ابدأ بإضافة أول منتج، وسيظهر مباشرة في الموقع.
+                  أضف باقة العروض التجريبية الجديدة، ويمكنك تعديلها مباشرة.
                   <br />
                   <button
                     disabled={busy}
@@ -396,7 +420,7 @@ export default function Admin({ setup = false }: { setup?: boolean }) {
                       })
                     }
                   >
-                    إضافة 9 منتجات تجريبية
+                    إضافة 12 منتجاً تجريبياً
                   </button>
                 </div>
               )}
@@ -409,14 +433,19 @@ export default function Admin({ setup = false }: { setup?: boolean }) {
                       <div className="grow">
                         <strong>{p.name}</strong>
                         <p>
-                          ₪{p.price} · {p.category} ·{" "}
+                          ₪{p.price} <del>₪{p.originalPrice}</del> · {p.category} ·{" "}
                           {p.active ? "ظاهر" : "مخفي"}
                         </p>
                       </div>
                       <button
                         onClick={() => {
                           setEditing(p.id);
-                          setForm({ ...p, price: String(p.price) });
+                          setForm({
+                            ...p,
+                            price: String(p.price),
+                            originalPrice: String(p.originalPrice),
+                            dealEnd: p.dealEnd ? new Date(p.dealEnd - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "",
+                          });
                           window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
                       >
