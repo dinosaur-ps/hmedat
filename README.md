@@ -1,37 +1,85 @@
-# הזדמנות אחרונה · Hazmanut Aharona
+# הזדמנות אחרונה — Hazmanut Aharona
 
-A responsive Hebrew product showcase for **hazmanut-aharona.co.il**.
+واجهة متجر بسيطة ومتجاوبة بالعبرية، ولوحة تحكم بالعربية. المنتجات تفتح رسالة واتساب جاهزة باسم المنتج وسعره إلى **+972594640044**؛ الإرسال يتم بواسطة الزبون داخل واتساب.
 
-## Features
-- Hebrew interface with right-to-left layout
-- Responsive product grid and editorial landing page
-- Instant product search and category filters
-- Accessible product detail dialogs with keyboard support
-- Clear demonstration product and price labels
+## ما يقدمه النظام
 
-## Preview locally
-Serve this directory using any static web server, for example:
+- عرض المنتجات: اسم، صورة، سعر، فئة، بحث وفلاتر.
+- إضافة وتعديل وحذف وإخفاء المنتجات وترتيبها.
+- رفع صور JPG / PNG / WEBP حتى 5 MB أو استخدام رابط HTTPS.
+- تعديل جميع عناصر الصفحة الرئيسية: الهوية، التنقل، صورة الغلاف، العناوين، الأزرار، الشريط، قسم المنتجات، التواصل، رقم واتساب والدومين.
+- حساب مدير واحد، كلمة مرور قابلة للتغيير، جلسات مدتها 8 ساعات.
+- إعداد أولي برمز خاص لمرة واحدة؛ لا توجد بيانات دخول افتراضية.
+- مجموعة اختيارية من 9 منتجات تجريبية واضحة التسمية.
 
-```sh
-python3 -m http.server 8080
+## تنظيم المشروع
+
+```text
+app/
+  page.tsx                  واجهة العرض
+  admin/                    الدخول وإدارة المحتوى
+  api/[...path]/route.ts     توزيع الطلبات وفحص الصلاحيات
+  globals.css               التصميم والحركة والاستجابة
+app/admin/components/       واجهة لوحة التحكم المستقلة
+lib/
+  services/auth.ts          الحساب والجلسات وحد المحاولات
+  services/products.ts      إضافة وتعديل وحذف المنتجات
+  services/images.ts        رفع الصور وقراءتها
+  services/settings.ts      معلومات الموقع
+  repository.ts             قاعدة البيانات والإعدادات الافتراضية
+  security.ts               تشفير كلمات المرور والجلسات
+  validation.ts             التحقق من البيانات وروابط واتساب
+  client.ts                 الاتصال بالخادم
+  demo-products.ts          أمثلة اختيارية
+ db/schema.ts               تعريف الجداول
+ drizzle/                   ترحيلات قاعدة البيانات
+ tests/                     اختبارات الوظائف والواجهة البرمجية
+ scripts/                   أدوات التشغيل والبناء
+ worker/                    مدخل خادم Cloudflare
 ```
 
-Open http://localhost:8080.
+## الاستضافة
 
-## Update products
-Edit the `products` array in `app.js`. Each product has a name, category, price in shekels, Unsplash image ID, short tag, and description. Categories are `home`, `everyday`, and `accessories`.
+هذا تطبيق بخادم وقاعدة بيانات، وليس صفحة ثابتة. **GitHub Pages لا يشغّل لوحة التحكم أو قاعدة البيانات.** المستودع يحتوي المصدر؛ التشغيل المنشور الحالي عبر Sites مع Cloudflare Workers + D1 + R2. لا تضع كلمات المرور أو بيانات الدخول في GitHub.
 
-Edit page text in `index.html` and appearance in `style.css`. Photography loads from Unsplash and the Heebo font from Google Fonts.
+`.openai/hosting.json` يحدد قاعدة D1 باسم `DB` وتخزين الصور R2 باسم `BUCKET`. النشر عبر Sites يطبق ترحيلات SQL تلقائياً. ملفات SQL هيكلية فقط؛ الأمثلة تضاف بطلب صريح من لوحة التحكم.
 
-The current products and prices are demonstration content. Replace them with verified product information before launching. No checkout, payment handling, or order collection is enabled.
+الدومين المقصود `hazdmanut-aharona.co.il` لم يتم ربطه بعد. تحتاج الاستضافة النهائية إعداد الدومين وDNS قبل توجيهه، ولا يُفترض أن رابط المعاينة هو الدومين النهائي.
 
-## Publish with GitHub Pages
-1. Open this repository's **Settings → Pages**.
-2. Choose **Deploy from a branch**.
-3. Select **main** and **/ (root)**, then save.
-4. Wait for the Pages deployment to finish. GitHub will display the website URL.
+## أول دخول
 
-## Connect hazmanut-aharona.co.il
-After Pages is working, enter `hazmanut-aharona.co.il` under **Settings → Pages → Custom domain**, then follow GitHub's DNS instructions at your domain provider and enable HTTPS when available.
+1. افتح رابط إعداد المالك الخاص `/admin/setup#<SETUP_TOKEN>`.
+2. اختر اسم مستخدم إنجليزي (3–40 حرفاً) وكلمة مرور (12–128 حرفاً).
+3. بعد إنشاء الحساب يُغلق الإعداد نهائياً حتى لو بقي الرمز معروفاً.
+4. للدخول لاحقاً استخدم `/admin`.
+5. أضف المنتجات الحقيقية أو استخدم زر المنتجات التجريبية لتجربة التصميم. جميع الأسعار بالشيكل.
 
-Domain ownership and DNS access are required. The domain has not been connected by this project. Avoid changing DNS until the hosting configuration is ready.
+`SETUP_TOKEN` سر يُحفظ في إعدادات الخادم فقط. لا تحفظ رابط الإعداد في المستودع. كلمة المرور مخزنة باستخدام PBKDF2-SHA256 مع salt عشوائي. الجلسات عشوائية وبصمتها فقط محفوظة بالقاعدة، مع HttpOnly / SameSite=Strict / Secure على HTTPS. تغيير كلمة المرور يلغي جميع الجلسات. محاولات الدخول محدودة لكل عنوان اتصال. طلبات التعديل تتطلب Origin مطابقاً للموقع وحساباً مصادقاً.
+
+## تشغيل محلي
+
+يتطلب Node.js 22.13 أو أحدث وpnpm.
+
+```sh
+pnpm install
+pnpm db:generate # فقط عند تغيير تعريف الجداول
+pnpm build
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_true_firedrake.sql
+```
+
+للتجربة المحلية فقط ضع `SETUP_TOKEN` في `dist/server/.dev.vars` بعد البناء، ثم شغّل `pnpm start`. لا ترفع هذا الملف ولا تضمه لأرشيف النشر. مسار `.wrangler/state` يحفظ قاعدة الاختبار المحلية؛ قاعدة الإنتاج منفصلة.
+
+## التحقق
+
+```sh
+node node_modules/typescript/bin/tsc --noEmit
+node --experimental-strip-types --test tests/core.test.mjs
+```
+
+`tests/api.integration.mjs` اختبار لقاعدة محلية منفصلة على المنفذ 8787 فقط؛ يضيف ويحذف منتج اختبار، ويختبر تسجيل الدخول وصلاحيات التعديل ورفع الصور. لا تشغّله على بيانات إنتاج. بيانات الدخول داخله اختبارية محلية فقط.
+
+## ملاحظات تشغيل
+
+- الصور المرفوعة محفوظة في R2. حذف المنتج لا يحذف الصورة القديمة تلقائياً، لتجنب كسر روابط مستخدمة.
+- صور الأمثلة من Unsplash والخطوط من Google Fonts؛ الصور الحقيقية يمكن رفعها مباشرة.
+- لا يحتوي النظام دفعاً إلكترونياً أو إدارة مخزون أو إرسال واتساب آلياً.
