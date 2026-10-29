@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import { demoDeadline, demoImage, demoProducts } from "./demo-products";
 export const bindings = () =>
   env as unknown as { DB: D1Database; BUCKET: R2Bucket; SETUP_TOKEN?: string };
 export const database = () => bindings().DB;
@@ -51,6 +52,23 @@ export async function listProducts(admin = false) {
     .prepare(
       `SELECT * FROM products ${admin ? "" : "WHERE active=1"} ORDER BY sort,updated DESC`,
     )
-    .all();
-  return rows.results.map((p) => ({ ...p, active: Boolean(p.active) }));
+    .all<Record<string, any>>();
+  const products = rows.results.map((p) => ({
+    ...p,
+    originalPrice: p.original_price,
+    dealEnd: p.deal_end,
+    featured: Boolean(p.featured),
+    active: Boolean(p.active),
+  }));
+  const legacyDemo = products.length > 0 && products.every((p) => String((p as any).name).includes("· דוגמה"));
+  if (admin || (products.length && !legacyDemo)) return products;
+  const deadline = demoDeadline();
+  return demoProducts.map((p, index) => ({
+    ...p,
+    id: `demo-${index + 1}`,
+    image: demoImage(p.image),
+    active: true,
+    sort: index,
+    dealEnd: p.featured ? deadline : null,
+  }));
 }
